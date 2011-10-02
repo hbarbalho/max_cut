@@ -10,17 +10,23 @@
 
 #include <string.h>
 #include <iostream>
+#include "Edge.h"
 using namespace std;
 
 class Instance {
 public:
+	Edge* bestEdge();
+	Edge* bestEdge(int);
+	int numEdges();
+	int numVertex();
 	Instance(string arq_name);
 	virtual ~Instance();
 private:
 	string arq_name;
 	int num_edges;
 	int num_vertex;
-	int** matriz;
+	Edge*** matriz;
+	Edge** order;
 	void loadFile();
 };
 
