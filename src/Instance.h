@@ -20,6 +20,7 @@ private:
 	string arq_name;
 	int num_edges;
 	int num_vertex;
+	int** matriz;
 	void loadFile();
 };
 

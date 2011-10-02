@@ -11,6 +11,7 @@ using namespace std;
 #include "Instance.h"
 
 int main(int argv, char *arg[]){
-	Instance instance("/home/hugo/workspace/max_cut/instances/set1/g1.rud");
+	Instance *instance = new Instance("/home/hugo/workspace/max_cut/instances/set1/g1.rud");
+	delete instance;
 	return 0;
 }

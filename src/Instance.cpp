@@ -7,6 +7,7 @@
 
 #include "Instance.h"
 #include<fstream>
+#include<stdlib.h>
 
 Instance::Instance(string arq_name) {
 	Instance::arq_name = arq_name;
@@ -14,23 +15,34 @@ Instance::Instance(string arq_name) {
 }
 
 Instance::~Instance() {
-	// TODO Auto-generated destructor stub
+	for (int i = 0; i < num_vertex; i++) {
+		free(matriz[i]);
+	}
+	free(matriz);
 }
 
 void Instance::loadFile() {
 	ifstream myReadFile;
 	myReadFile.open(arq_name.c_str());
 	char output[100];
+	int i, j, cost;
 	if (myReadFile.is_open()) {
-		myReadFile >> output;
-		sscanf(output, "%d", &num_vertex);
-		myReadFile >> output;
-		sscanf(output, "%d", &num_edges);
-		while (!myReadFile.eof()) {
-			myReadFile >> output;
-			//cout << output;
+		myReadFile.getline(output, 100);
+		sscanf(output, "%d %d", &num_vertex, &num_edges);
+		matriz = (int**) malloc(sizeof(int*) * num_vertex);
+		for (i = 0; i < num_vertex; i++) {
+			matriz[i] = (int *) malloc(sizeof(int) * num_vertex);
+			for (j = 0; j < num_vertex; j++) {
+				matriz[i][j] = matriz[i][j] ^ matriz[i][j];
+			}
 		}
-	}else{
+
+		while (!myReadFile.eof()) {
+			myReadFile.getline(output, 100);
+			sscanf(output, "%d %d %d", &i, &j, &cost);
+			matriz[i][j] = cost;
+		}
+	} else {
 		cout << "Not open" << endl;
 	}
 	myReadFile.close();
