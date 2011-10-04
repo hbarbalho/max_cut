@@ -28,6 +28,10 @@ Instance::~Instance() {
 	free(matriz);
 }
 
+int Instance::edgeCost(int _i,int _j){
+	return matriz[_i][_j]==NULL?0:matriz[_i][_j]->cost;
+}
+
 Edge* Instance::bestEdge(int _i){
 	if(_i>=num_edges)return NULL;
 	return order[_i];
@@ -44,13 +48,12 @@ int Instance::numVertex(){
 }
 
 void Instance::loadFile() {
-	ifstream myReadFile;
-	myReadFile.open(arq_name.c_str());
+	FILE *arq;
+	arq = fopen(arq_name.c_str(),"r");
 	char output[100];
 	int i, j, cost;
-	if (myReadFile.is_open()) {
-		myReadFile.getline(output, 100);
-		sscanf(output, "%d %d", &num_vertex, &num_edges);
+	if (arq) {
+		fscanf(arq, "%d %d", &num_vertex, &num_edges);
 		order = (Edge**) malloc(sizeof(Edge*) * num_edges);
 		matriz = (Edge***) malloc(sizeof(Edge**) * num_vertex);
 		for (i = 0; i < num_vertex; i++) {
@@ -60,16 +63,16 @@ void Instance::loadFile() {
 			}
 		}
 		int ordePos=0;
-		while (!myReadFile.eof()) {
-			myReadFile.getline(output, 100);
-			sscanf(output, "%d %d %d", &i, &j, &cost);
+		while (fscanf(arq, "%d %d %d", &i, &j, &cost)!=EOF) {
+			i--;
+			j--;
 			matriz[i][j] = new Edge(i,j,cost);
 			order[ordePos++] = matriz[i][j];
 		}
-		qsort (order, num_edges, sizeof(Edge), compare);
+		qsort (order, num_edges, sizeof(Edge*), compare);
+		printf("%d:%d\n", num_vertex,num_edges);
+		fclose(arq);
 	} else {
-		cout << "Not open" << endl;
+		printf("Not open\n");
 	}
-	printf("%d:%d\n", num_vertex,num_edges);
-	myReadFile.close();
 }

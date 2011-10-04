@@ -13,6 +13,7 @@
 class GA {
 private:
 	Instance *instance;
+	unsigned int seed;
 	Solution* greedySolution();
 public:
 	GA(Instance*);

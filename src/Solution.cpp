@@ -13,9 +13,23 @@ void Solution::print(){
 		printf("%d ",vertex[i]);
 	printf("\n");
 }
-Solution::Solution(int *_vertex, int _length) {
+int Solution::getCost(){
+	return cost;
+}
+int Solution::calculate_cost(){
+	int cost=0;
+	for(int i=0;i<length;i++)
+		for(int j=i+1;j<length;j++){
+			if(vertex[i]!=vertex[j])
+				cost+=instance->edgeCost(i,j);
+		}
+	return cost;
+}
+Solution::Solution(int *_vertex, int _length,Instance *_instance) {
 	vertex = _vertex;
 	length = _length;
+	instance = _instance;
+	cost = calculate_cost();
 }
 
 Solution::~Solution() {

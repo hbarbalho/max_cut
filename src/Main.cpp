@@ -13,7 +13,6 @@ using namespace std;
 
 int main(int argv, char *arg[]){
 	Instance *instance = new Instance("/home/hugo/workspace/max_cut/instances/set1/g1.rud");
-	cout << "Fazer GA"<<endl;
 	GA *ga = new GA(instance);
 	delete instance;
 	return 0;

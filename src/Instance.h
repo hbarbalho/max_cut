@@ -19,6 +19,7 @@ public:
 	Edge* bestEdge(int);
 	int numEdges();
 	int numVertex();
+	int edgeCost(int,int);
 	Instance(string arq_name);
 	virtual ~Instance();
 private:
