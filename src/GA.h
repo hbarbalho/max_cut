@@ -15,6 +15,7 @@ private:
 	Instance *instance;
 	unsigned int seed;
 	Solution* greedySolution();
+	Solution** crossOver(Solution*,Solution*);
 public:
 	GA(Instance*);
 	virtual ~GA();
