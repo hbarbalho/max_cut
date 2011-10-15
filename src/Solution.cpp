@@ -20,8 +20,9 @@ int Solution::calculate_cost(){
 	int cost=0;
 	for(int i=0;i<length;i++)
 		for(int j=i+1;j<length;j++){
-			if(vertex[i]!=vertex[j])
+			if(vertex[i]!=vertex[j]){
 				cost+=instance->edgeCost(i,j);
+			}
 		}
 	return cost;
 }

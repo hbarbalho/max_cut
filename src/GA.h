@@ -14,10 +14,16 @@ class GA {
 private:
 	Instance *instance;
 	unsigned int seed;
+	double time;
+	Solution* bestSol;
 	Solution* greedySolution();
 	Solution** crossOver(Solution*,Solution*);
+	Solution* mutation(Solution*,int,int);
+	Solution** createPopulation(int size);
 public:
-	GA(Instance*);
+	GA(Instance*,int num_generations,int size_population,unsigned int _seed);
+	Solution* getBest();
+	double getTime();
 	virtual ~GA();
 };
 

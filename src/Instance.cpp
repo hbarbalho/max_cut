@@ -10,9 +10,11 @@
 #include<stdlib.h>
 #include<stdio.h>
 
-int compare (const void * a, const void * b)
+int compareEdges (const void * a, const void * b)
 {
-  return ( ((Edge*)a)->cost - ((Edge*)b)->cost );
+	Edge **e1 = (Edge **)a;
+	Edge **e2 = (Edge **)b;
+	return (*e2)->cost - (*e1)->cost;
 }
 
 
@@ -29,7 +31,12 @@ Instance::~Instance() {
 }
 
 int Instance::edgeCost(int _i,int _j){
-	return matriz[_i][_j]==NULL?0:matriz[_i][_j]->cost;
+	if(matriz[_i][_j]!=NULL)
+		return matriz[_i][_j]->cost;
+	else if(matriz[_j][_i]!=NULL)
+		return matriz[_j][_i]->cost;
+	else
+		return 0;
 }
 
 Edge* Instance::bestEdge(int _i){
@@ -69,7 +76,7 @@ void Instance::loadFile() {
 			matriz[i][j] = new Edge(i,j,cost);
 			order[ordePos++] = matriz[i][j];
 		}
-		qsort (order, num_edges, sizeof(Edge*), compare);
+		qsort (order, num_edges, sizeof(Edge*), compareEdges);
 		printf("%d:%d\n", num_vertex,num_edges);
 		fclose(arq);
 	} else {
