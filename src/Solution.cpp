@@ -16,6 +16,22 @@ void Solution::print(){
 int Solution::getCost(){
 	return cost;
 }
+
+void Solution::setCost(int _cost){
+	cost = _cost;
+}
+
+int Solution::recalculate_cost(int _i){
+	int cost=Solution::cost;
+	for(int i=0;i<length;i++){
+		if(vertex[i]==vertex[_i])
+			cost-=instance->edgeCost(i,_i);
+		else
+			cost+=instance->edgeCost(i,_i);
+	}
+	return cost;
+}
+
 int Solution::calculate_cost(){
 	int cost=0;
 	for(int i=0;i<length;i++)

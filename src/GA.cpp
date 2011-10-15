@@ -118,6 +118,21 @@ Solution** GA::createPopulation(int size){
 	qsort (sols, size, sizeof(Solution*), compareSols);
 	return sols;
 }
+
+Solution* GA::localSearch(Solution* sol){
+	int best_cost=sol->getCost();
+	int cost;
+	for(int i=0;i<instance->numVertex();i++){
+		sol->vertex[i] = !sol->vertex[i];
+		cost = sol->recalculate_cost(i);
+		if(cost>best_cost){
+			sol->setCost(cost);
+			best_cost = cost;
+		}else
+			sol->vertex[i] = !sol->vertex[i];
+	}
+	return sol;
+}
 GA::GA(Instance *_instance,int num_generations,int size_population,unsigned int _seed) {
 	double s_CPU_inicial, s_CPU_final, s_total_inicial, s_total_final,t;
 	Tempo_CPU_Sistema(&s_CPU_inicial, &s_total_inicial);
@@ -132,8 +147,12 @@ GA::GA(Instance *_instance,int num_generations,int size_population,unsigned int 
 	int top= floor(size*0.3);
 	int middle = top+floor(size*0.4);
 	int rest = size;
-
 	for(int i=0;i<num_generations;i++){
+		if(rand_r(&seed)%10>8){
+			for(int j=0;j<middle;j++)
+				population[j] = localSearch(population[j]);
+		}
+
 		new_pop = (Solution**)malloc(sizeof(Solution*)*size);
 		new_size = 0;
 		for(int j=0;j<top;j++)

@@ -18,6 +18,8 @@ public:
 	int getCost();
 	Solution(int*,int,Instance*);
 	virtual ~Solution();
+	int recalculate_cost(int _i);
+	void setCost(int _cost);
 private:
 	int cost;
 	int calculate_cost();
