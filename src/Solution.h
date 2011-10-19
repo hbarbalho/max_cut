@@ -16,13 +16,15 @@ public:
 	Instance *instance;
 	void print();
 	int getCost();
-	Solution(int*,int,Instance*);
+	Solution(int *_vertex, int _length,int _cost,Instance *_instance);
+	Solution(int *_vertex, int _length,Instance *_instance);
 	virtual ~Solution();
 	int recalculate_cost(int _i);
 	void setCost(int _cost);
+	float calculate_similarity(Solution*);
+	int calculate_cost();
 private:
 	int cost;
-	int calculate_cost();
 };
 
 #endif /* SOLUTION_H_ */

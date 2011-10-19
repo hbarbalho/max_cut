@@ -86,6 +86,32 @@ Solution* GA::mutation(Solution *a,int p1,int p2){
 	return new Solution(vertexM,instance->numVertex(),instance);
 }
 
+Solution** GA::crossOver2points(Solution *a,Solution *b){
+	int *vertexA = (int*) malloc(sizeof(int)* a->length);
+	int *vertexB = (int*) malloc(sizeof(int)* b->length);
+	int pointA = rand_r(&seed)%a->length;
+	int pointB = rand_r(&seed)%b->length;
+
+	for(int i=0;i<pointA;i++)
+		vertexA[i]=a->vertex[i];
+	for(int i=pointA;i<a->length;i++)
+		vertexB[i]=a->vertex[i];
+
+
+	for(int i=0;pointA+i<a->length;i++)
+		vertexA[pointA+i]=b->vertex[i];
+
+	for(int i=pointB,qnt=0;qnt<pointA;i=(i+1)%b->length,qnt++)
+		vertexB[qnt]=b->vertex[i];
+
+	Solution *crossA = new Solution(vertexA,instance->numVertex(),instance);
+	Solution *crossB = new Solution(vertexB,instance->numVertex(),instance);
+	Solution **sols = (Solution**)malloc(sizeof(Solution*)*2);
+	sols[0] = crossA;
+	sols[1] = crossB;
+	return sols;
+}
+
 Solution** GA::crossOver(Solution *a,Solution *b){
 	int *vertexA = (int*) malloc(sizeof(int)* instance->numVertex());
 	int *vertexB = (int*) malloc(sizeof(int)* instance->numVertex());
@@ -111,30 +137,172 @@ Solution** GA::crossOver(Solution *a,Solution *b){
 }
 
 Solution** GA::createPopulation(int size){
+	printf("Creating population ...\n");
 	Solution **sols = (Solution**)malloc(sizeof(Solution*)*size);
-	for(int i=0;i<size;i++){
-		sols[i] = greedySolution();
+	int worst_pos=0;
+	int length=0;
+	Solution *sol;
+	for(int i=0;i<size+10 || length<size;i++){
+		sol = greedySolution();
+		sol = localSearch2(sol);
+		if(length<size){
+			sols[length] = sol;
+			length++;
+			if(length==size)
+				sols = createSMP(sols,size,&length);
+		}else{
+			worst_pos = 0;
+			for(int j=1;j<size;j++)
+				if(sols[j]->getCost()<sols[worst_pos]->getCost())
+					worst_pos = j;
+			if(sol->getCost() > sols[worst_pos]->getCost()){
+				sols[worst_pos]=sol;
+				sols = createSMP(sols,size,&length);
+			}
+		}
 	}
+
 	qsort (sols, size, sizeof(Solution*), compareSols);
+	printf("Created %d\n",sols[0]->getCost());
+	return sols;
+}
+
+Solution* GA::localSearch2opt(Solution* sol){
+	int redo[4];
+	int comb[4];
+	for(int i=0;i<4;i++)
+		redo[i] = rand_r(&seed)%sol->length;
+
+	int cost;
+	int best_cost=0;
+	int best_move=0;
+	for(int i=0;i<16;i++){
+		comb[3]=i%2;
+		comb[2]=(i%4==2 || i%4==3);
+		comb[1]=i%8>3;
+		comb[0]=i%16>7;
+		for(int j=0;j<4;j++)
+			sol->vertex[redo[j]] = comb[j];
+
+		cost = sol->calculate_cost();
+		if(cost>best_cost){
+			best_cost = cost;
+			best_move = i;
+		}
+	}
+
+	if(best_cost>0){
+		comb[3]=best_move%2;
+		comb[2]=(best_move%4==2 || best_move%4==3);
+		comb[1]=best_move%8>3;
+		comb[0]=best_move%16>7;
+		for(int i=0;i<4;i++)
+			sol->vertex[redo[i]] = comb[i];
+		sol->setCost(best_cost);
+	}
+	return sol;
+}
+
+Solution* GA::hillClimbing(Solution* sol){
+	//printf("start hill\n");
+	int best_cost=sol->getCost();
+	int cost;
+	for(int i=0;i<sol->length;i++){
+		sol->vertex[i] = !sol->vertex[i];
+		cost = sol->recalculate_cost(i);
+		if(cost>best_cost){
+			best_cost = cost;
+			sol->setCost(best_cost);
+		}else{
+			sol->vertex[i] = !sol->vertex[i];
+		}
+	}
+	//printf("end hill\n");
+	return sol;
+}
+
+Solution* GA::hybridHillClimbing(Solution* sol){
+	Solution *s;
+	Solution *best= sol;
+	for(int i=0;i<50;i++){
+		s = localSearch(best);
+		if(s->getCost() > best->getCost()){
+			best = s;
+		}else{
+			s = sol;
+		}
+	}
+	return best;
+}
+
+Solution* GA::localSearch2(Solution* sol){
+	//printf("start hill\n");
+	int best_cost=sol->getCost();
+	int cost;
+	for(int i=0;i<sol->length;i++){
+		sol->vertex[i] = !sol->vertex[i];
+		cost = sol->recalculate_cost(i);
+		if(cost>best_cost){
+			best_cost = cost;
+			sol->setCost(best_cost);
+			i=0;
+		}else{
+			sol->vertex[i] = !sol->vertex[i];
+		}
+	}
+	//printf("end hill\n");
+	return sol;
+}
+
+Solution** GA::createSMP(Solution** population,int size,int *size_smp){
+	int new_size=1;
+	Solution **sols = (Solution**)malloc(sizeof(Solution*)*size);
+	sols[0] = population[0];
+	for(int i=1;i<size;i++){
+		int diff=1;
+		float simi;
+		for(int j=0;j<new_size;j++){
+			simi = population[i]->calculate_similarity(sols[j]);
+			if(floor(simi*1000)>=998){
+				diff=0;
+			}
+		}
+		if(diff){
+			sols[new_size++] = population[i];
+		}
+	}
+	*size_smp = new_size;
+	memset(population,NULL,sizeof(Solution*)*size);
+	free(population);
 	return sols;
 }
 
 Solution* GA::localSearch(Solution* sol){
 	int best_cost=sol->getCost();
+	int best_move = -1;
 	int cost;
-	for(int i=0;i<instance->numVertex();i++){
+	for(int i=0;i<sol->length;i++){
 		sol->vertex[i] = !sol->vertex[i];
 		cost = sol->recalculate_cost(i);
 		if(cost>best_cost){
-			sol->setCost(cost);
+			best_move = i;
 			best_cost = cost;
-		}else
-			sol->vertex[i] = !sol->vertex[i];
+		}
+		sol->vertex[i] = !sol->vertex[i];
 	}
-	return sol;
+	Solution *ret;
+	if(best_move>=0){
+		int *vertexA = (int*) malloc(sizeof(int)* instance->numVertex());
+		for(int i=0;i<sol->length;i++)
+			vertexA[i]=sol->vertex[i];
+		vertexA[best_move] = !sol->vertex[best_move];
+		ret = new Solution(vertexA,sol->length,best_cost,instance);
+	}else
+		ret = sol;
+	return ret;
 }
 GA::GA(Instance *_instance,int num_generations,int size_population,unsigned int _seed) {
-	double s_CPU_inicial, s_CPU_final, s_total_inicial, s_total_final,t;
+	double s_CPU_inicial, s_CPU_final, s_total_inicial, s_total_final;
 	Tempo_CPU_Sistema(&s_CPU_inicial, &s_total_inicial);
 	bestSol=NULL;
 	time = -1;
@@ -144,14 +312,13 @@ GA::GA(Instance *_instance,int num_generations,int size_population,unsigned int 
 	Solution** population = createPopulation(size);
 	Solution** new_pop;
 	int new_size;
-	int top= floor(size*0.3);
-	int middle = top+floor(size*0.4);
-	int rest = size;
 	for(int i=0;i<num_generations;i++){
-		if(rand_r(&seed)%10>8){
-			for(int j=0;j<middle;j++)
-				population[j] = localSearch(population[j]);
-		}
+		int size_smp=0;
+		population = createSMP(population,size,&size_smp);
+
+		int top= ceil(size_smp*0.3);
+		int middle = top+ceil(size_smp*0.4);
+		int rest = size_smp;
 
 		new_pop = (Solution**)malloc(sizeof(Solution*)*size);
 		new_size = 0;
@@ -159,25 +326,64 @@ GA::GA(Instance *_instance,int num_generations,int size_population,unsigned int 
 			new_pop[new_size++] = population[j];
 
 		while(new_size<size){
-			if(rand_r(&seed)%10>=6){
-				int top_sol = rand_r(&seed)%top;
-				int middle_sol = top+rand_r(&seed)%(middle-top);
-				Solution** offspring = crossOver(population[top_sol],population[middle_sol]);
-				if(new_size+2<size){
-					new_pop[new_size++] = offspring[0];
-					new_pop[new_size++] = offspring[1];
-				}else{
-					new_pop[new_size++] = offspring[0]->getCost()>offspring[1]->getCost()?offspring[0]:offspring[1];
-				}
+			int top_sol = rand_r(&seed)%top;
+			int middle_sol;
+			if(middle==top)
+				middle_sol = top_sol;
+			else
+				middle_sol = top+rand_r(&seed)%(middle-top);
+			int rest_sol;
+
+			if(rest==middle)
+				rest_sol = middle_sol;
+			else
+				rest_sol = rand_r(&seed)%(rest-middle)+middle;
+
+			int rand = rand_r(&seed)%100;
+
+			int s1_index,s2_index;
+			if(rand<50){
+				s1_index = top_sol;
+				s2_index = middle_sol;
+			}else if(rand<70){
+				s1_index = top_sol;
+				s2_index = rest_sol;
 			}else{
-				int middle_sol = top+rand_r(&seed)%(middle-top);
-				Solution* sol = mutation(population[middle_sol],rand_r(&seed)%instance->numVertex(),rand_r(&seed)%instance->numVertex());
-				new_pop[new_size++] = sol;
+				s1_index = middle_sol;
+				s2_index = rest_sol;
+			}
+
+			Solution* s1 = population[s1_index];
+			Solution* s2 = population[s2_index];
+			if(rand_r(&seed)%10>=6){
+				Solution** offspring = crossOver(s1,s2);
+				s1 = offspring[0];
+				s2 = offspring[1];
+			}
+			if(rand_r(&seed)%10>=2){
+				s1 = mutation(s1,rand_r(&seed)%instance->numVertex(),rand_r(&seed)%instance->numVertex());
+				s2 = mutation(s2,rand_r(&seed)%instance->numVertex(),rand_r(&seed)%instance->numVertex());
+			}
+			if(rand_r(&seed)%10>=8){
+				//s1 = localSearch2opt(s1);
+				//s2 = localSearch2opt(s2);
+				//s1 = localSearch(s1);
+				//s2 = localSearch(s2);
+			}
+			if(new_size+2<size){
+				new_pop[new_size++] = s1;
+				new_pop[new_size++] = s2;
+			}else{
+				new_pop[new_size++] = s1->getCost()>s2->getCost()?s1:s2;
 			}
 		}
 		memset(population,NULL,sizeof(Solution*)*size);
 		free(population);
 		population = new_pop;
+		if(rand_r(&seed)%10>=8){
+			for(int j=0;j<middle;j++)
+				population[j] = hybridHillClimbing(population[j]);
+		}
 		qsort (population, size, sizeof(Solution*), compareSols);
 	}
 	bestSol = population[0];

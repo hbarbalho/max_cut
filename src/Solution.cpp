@@ -42,11 +42,27 @@ int Solution::calculate_cost(){
 		}
 	return cost;
 }
+
+float Solution::calculate_similarity(Solution* sol){
+	float inter=0;
+	for(int i=0;i<length;i++){
+		inter+=vertex[i]==sol->vertex[i];
+	}
+	return inter/(float)length;
+}
+
 Solution::Solution(int *_vertex, int _length,Instance *_instance) {
 	vertex = _vertex;
 	length = _length;
 	instance = _instance;
 	cost = calculate_cost();
+}
+
+Solution::Solution(int *_vertex, int _length,int _cost,Instance *_instance) {
+	vertex = _vertex;
+	length = _length;
+	instance = _instance;
+	cost = _cost;
 }
 
 Solution::~Solution() {
