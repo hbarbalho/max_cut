@@ -17,6 +17,8 @@ private:
 	double time;
 	Solution* bestSol;
 	Solution* greedySolution();
+	Solution* pr(Solution* from, Solution* to);
+	Solution* greedySolution2();
 	Solution** crossOver(Solution*,Solution*);
 	Solution** crossOver2points(Solution*,Solution*);
 	Solution* mutation(Solution*,int,int);

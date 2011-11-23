@@ -22,14 +22,14 @@ void Solution::setCost(int _cost){
 }
 
 int Solution::recalculate_cost(int _i){
-	int cost=Solution::cost;
+	int _cost=cost;
 	for(int i=0;i<length;i++){
 		if(vertex[i]==vertex[_i])
-			cost-=instance->edgeCost(i,_i);
+			_cost-=instance->edgeCost(i,_i);
 		else
-			cost+=instance->edgeCost(i,_i);
+			_cost+=instance->edgeCost(i,_i);
 	}
-	return cost;
+	return _cost;
 }
 
 int Solution::calculate_cost(){
