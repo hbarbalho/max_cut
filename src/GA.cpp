@@ -196,7 +196,7 @@ Solution** GA::createPopulation(int size){
 	int length=0;
 	Solution *sol;
 	for(int i=0;i<size+10 || length<size;i++){
-		sol = i%2==0?greedySolution():greedySolution2();
+		sol = greedySolution();
 		sol = localSearch2(sol);//localSearch(sol);//hybridHillClimbing(sol);
 		if(length<size){
 			sols[length] = sol;
@@ -521,9 +521,7 @@ GA::GA(Instance *_instance,int num_generations,int size_population,unsigned int 
 		population = new_pop;
 		if(rand_r(&seed)%10>=8){
 			for(int j=0;j<top;j++){
-				population[j] = hillClimbing(population[j]);
-				for(int k=0;k<10;k++)
-					population[j] = localSearch2opt(population[j]);
+				population[j] = localSearch2(population[j]);
 			}
 		}
 		qsort (population, size, sizeof(Solution*), compareSols);
